@@ -1,0 +1,266 @@
+<Window x:Class="AndroidOnWindows.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Android on Windows" Height="760" Width="1040"
+        Background="{StaticResource Bg}"
+        AllowDrop="True" Drop="Window_Drop" DragOver="Window_DragOver"
+        PreviewKeyDown="Window_PreviewKeyDown">
+
+    <Grid Margin="14">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <StackPanel Grid.Row="0">
+            <TextBlock Text="Android on Windows" FontSize="26" FontWeight="Bold" Foreground="{StaticResource Accent}"/>
+            <TextBlock Text="Google Play Store &amp; Android apps, each in its own native Windows window."
+                       Foreground="{StaticResource TextDim}" Margin="0,2,0,8"/>
+            <TextBlock Text="{Binding StatusText}" FontWeight="SemiBold" TextWrapping="Wrap"/>
+        </StackPanel>
+
+        <!-- Progress -->
+        <ProgressBar Grid.Row="1" Height="8" Margin="0,10,0,4"
+                     Maximum="100" Value="{Binding ProgressPercent}"
+                     IsIndeterminate="{Binding IsIndeterminate}"
+                     Foreground="{StaticResource Accent}" Background="{StaticResource PanelAlt}"/>
+
+        <!-- Tabs -->
+        <TabControl Grid.Row="2" Background="Transparent" BorderBrush="#2A2F3A" Margin="0,8,0,0">
+
+            <!-- SETUP -->
+            <TabItem Header="Setup">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="12">
+                        <TextBlock Text="1. Environment" FontWeight="Bold" FontSize="15"/>
+                        <TextBlock TextWrapping="Wrap" Foreground="{StaticResource TextDim}"
+                                   Text="Installs only what's needed, straight from Google: adb, the emulator and one Play-enabled system image. Downloads resume automatically if your connection drops."/>
+                        <WrapPanel Margin="0,8,0,0">
+                            <Button Content="Check environment" Command="{Binding CheckEnvironmentCommand}"/>
+                            <Button Content="Setup (download core tools)" Style="{StaticResource AccentButton}" Command="{Binding SetupCommand}"/>
+                            <Button Content="Refresh image list" Command="{Binding CheckEnvironmentCommand}"/>
+                        </WrapPanel>
+
+                        <TextBlock Text="2. Play system image" FontWeight="Bold" FontSize="15" Margin="0,14,0,4"/>
+                        <ComboBox ItemsSource="{Binding SystemImages}" SelectedItem="{Binding SelectedImage}"
+                                  DisplayMemberPath="Label" MinWidth="520" HorizontalAlignment="Left"/>
+                        <TextBlock Text="Tip: on a slow link pick the newest API (smallest download and best app compatibility)."
+                                   Foreground="{StaticResource TextDim}"/>
+
+                        <TextBlock Text="3. Device settings" FontWeight="Bold" FontSize="15" Margin="0,14,0,4"/>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/>
+                            </Grid.RowDefinitions>
+
+                            <TextBlock Grid.Row="0" Grid.Column="0" Text="Device name" VerticalAlignment="Center" Margin="0,0,8,8"/>
+                            <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding Settings.AvdName, UpdateSourceTrigger=PropertyChanged}"/>
+                            <TextBlock Grid.Row="0" Grid.Column="2" Text="Resolution" VerticalAlignment="Center" Margin="0,0,8,8"/>
+                            <TextBox Grid.Row="0" Grid.Column="3" Text="{Binding Settings.Resolution, UpdateSourceTrigger=PropertyChanged}"/>
+
+                            <TextBlock Grid.Row="1" Grid.Column="0" Text="DPI" VerticalAlignment="Center" Margin="0,0,8,8"/>
+                            <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding Settings.Dpi, UpdateSourceTrigger=PropertyChanged}"/>
+                            <TextBlock Grid.Row="1" Grid.Column="2" Text="RAM (MB)" VerticalAlignment="Center" Margin="0,0,8,8"/>
+                            <TextBox Grid.Row="1" Grid.Column="3" Text="{Binding Settings.RamMb, UpdateSourceTrigger=PropertyChanged}"/>
+
+                            <TextBlock Grid.Row="2" Grid.Column="0" Text="CPU cores" VerticalAlignment="Center" Margin="0,0,8,8"/>
+                            <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding Settings.Cores, UpdateSourceTrigger=PropertyChanged}"/>
+                            <TextBlock Grid.Row="2" Grid.Column="2" Text="GPU mode" VerticalAlignment="Center" Margin="0,0,8,8"/>
+                            <TextBox Grid.Row="2" Grid.Column="3" Text="{Binding Settings.GpuMode, UpdateSourceTrigger=PropertyChanged}"
+                                     ToolTip="auto | host | swiftshader_indirect"/>
+
+                            <TextBlock Grid.Row="3" Grid.Column="0" Text="Camera back" VerticalAlignment="Center" Margin="0,0,8,8"/>
+                            <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding Settings.CameraBack, UpdateSourceTrigger=PropertyChanged}"
+                                     ToolTip="webcam0 (your real webcam) | emulated | none"/>
+                            <TextBlock Grid.Row="3" Grid.Column="2" Text="Camera front" VerticalAlignment="Center" Margin="0,0,8,8"/>
+                            <TextBox Grid.Row="3" Grid.Column="3" Text="{Binding Settings.CameraFront, UpdateSourceTrigger=PropertyChanged}"/>
+                        </Grid>
+
+                        <WrapPanel Margin="0,6,0,0">
+                            <Button Content="Save settings" Command="{Binding SaveSettingsCommand}"/>
+                            <Button Content="Create device" Command="{Binding CreateDeviceCommand}"/>
+                            <Button Content="Create + Start" Style="{StaticResource AccentButton}" Command="{Binding StartDeviceCommand}"/>
+                        </WrapPanel>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- APPS -->
+            <TabItem Header="Apps">
+                <Grid Margin="12">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <WrapPanel Grid.Row="0">
+                        <Button Content="Google Play Store" Style="{StaticResource AccentButton}" Command="{Binding OpenPlayStoreCommand}"/>
+                        <Button Content="Refresh apps" Command="{Binding RefreshAppsCommand}"/>
+                        <Button Content="Whole device (1 window)" Command="{Binding OpenDeviceWindowCommand}"/>
+                    </WrapPanel>
+                    <ListBox Grid.Row="1" ItemsSource="{Binding Apps}" Background="{StaticResource Panel}"
+                             BorderBrush="#2A2F3A" Foreground="{StaticResource Text}" Margin="0,4,0,4">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Margin="4,6">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0">
+                                        <TextBlock Text="{Binding Label}" FontWeight="SemiBold"/>
+                                        <TextBlock Text="{Binding Package}" Foreground="{StaticResource TextDim}" FontSize="11"/>
+                                    </StackPanel>
+                                    <Button Grid.Column="1" Content="Open in its own window"
+                                            Command="{Binding DataContext.OpenAppCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                            CommandParameter="{Binding}"/>
+                                </Grid>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                    <TextBlock Grid.Row="2" Foreground="{StaticResource TextDim}"
+                               Text="Drag an .apk file anywhere onto this window to install it."/>
+                </Grid>
+            </TabItem>
+
+            <!-- DEVICE -->
+            <TabItem Header="Device">
+                <StackPanel Margin="12">
+                    <TextBlock Text="Emulated device" FontWeight="Bold" FontSize="15"/>
+                    <TextBlock TextWrapping="Wrap" Foreground="{StaticResource TextDim}"
+                               Text="The Android device runs headless. Each app opens as a real Windows window; there is no emulator window."/>
+                    <ListBox ItemsSource="{Binding Devices}" SelectedItem="{Binding SelectedDevice}" Height="110" Margin="0,8,0,4"
+                             Background="{StaticResource Panel}" BorderBrush="#2A2F3A" Foreground="{StaticResource Text}">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Margin="4,4">
+                                    <TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold"/>
+                                    <TextBlock FontSize="11" Foreground="{StaticResource TextDim}">
+                                        <Run Text="{Binding Target}"/><Run Text="  •  "/><Run Text="{Binding Abi}"/>
+                                    </TextBlock>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                    <WrapPanel>
+                        <Button Content="Start device" Style="{StaticResource AccentButton}" Command="{Binding StartDeviceCommand}"/>
+                        <Button Content="Stop device" Command="{Binding StopDeviceCommand}"/>
+                        <Button Content="Refresh devices" Command="{Binding CheckEnvironmentCommand}"/>
+                    </WrapPanel>
+
+                    <TextBlock Text="Capture &amp; input" FontWeight="Bold" FontSize="15" Margin="0,14,0,4"/>
+                    <WrapPanel>
+                        <Button Content="Screenshot" Command="{Binding ScreenshotCommand}"/>
+                        <Button Content="{Binding RecordButtonText}" Command="{Binding ToggleRecordCommand}"/>
+                        <Button Content="Simulate fingerprint" Command="{Binding FingerprintCommand}"/>
+                    </WrapPanel>
+
+                    <TextBlock Text="Windows integration" FontWeight="Bold" FontSize="15" Margin="0,14,0,4"/>
+                    <WrapPanel>
+                        <Button Content="Create Start-menu shortcut" Command="{Binding CreateShortcutCommand}"/>
+                        <Button Content="Pin to taskbar" Command="{Binding PinTaskbarCommand}"/>
+                        <Button Content="Send file to device" Command="{Binding SendFileCommand}"/>
+                        <Button Content="Open shared folder" Command="{Binding OpenSharedFolderCommand}"/>
+                    </WrapPanel>
+
+                    <TextBlock Text="Sensors (emulated, not real hardware): fingerprint is simulated via adb, Wi-Fi/Bluetooth/NFC are emulated, and the camera uses your host webcam."
+                               TextWrapping="Wrap" Foreground="{StaticResource TextDim}" Margin="0,12,0,0"/>
+                </StackPanel>
+            </TabItem>
+
+            <!-- EXTRAS -->
+            <TabItem Header="Extras">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="12">
+                        <TextBlock Text="Window behaviour (scrcpy)" FontWeight="Bold" FontSize="15"/>
+                        <WrapPanel Margin="0,6,0,0">
+                            <CheckBox Content="Audio" IsChecked="{Binding Settings.ScrcpyAudio}"/>
+                            <CheckBox Content="Clipboard sync" IsChecked="{Binding Settings.ScrcpyClipboardSync}"/>
+                            <CheckBox Content="UHID keyboard" IsChecked="{Binding Settings.ScrcpyUhidKeyboard}"/>
+                        </WrapPanel>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="App window size" VerticalAlignment="Center" Margin="0,0,8,8"/>
+                            <TextBox Grid.Column="1" Text="{Binding Settings.VirtualDisplay, UpdateSourceTrigger=PropertyChanged}"/>
+                            <TextBlock Grid.Column="2" Text="App window DPI" VerticalAlignment="Center" Margin="0,0,8,8"/>
+                            <TextBox Grid.Column="3" Text="{Binding Settings.VirtualDisplayDpi, UpdateSourceTrigger=PropertyChanged}"/>
+                        </Grid>
+
+                        <TextBlock Text="Keyboard mapping (map a key to a device tap)" FontWeight="Bold" FontSize="15" Margin="0,10,0,4"/>
+                        <TextBlock Text="Turn mapping on, give the main window focus, then press mapped keys. Coordinates are device pixels."
+                                   TextWrapping="Wrap" Foreground="{StaticResource TextDim}"/>
+                        <WrapPanel Margin="0,6,0,0">
+                            <CheckBox Content="{Binding MappingModeText}" IsChecked="{Binding IsMapping}"/>
+                        </WrapPanel>
+                        <WrapPanel>
+                            <TextBox Text="{Binding NewKey, UpdateSourceTrigger=PropertyChanged}" Width="80" ToolTip="Key, e.g. Space or A"/>
+                            <TextBox Text="{Binding NewKeyX, UpdateSourceTrigger=PropertyChanged}" Width="70" ToolTip="X"/>
+                            <TextBox Text="{Binding NewKeyY, UpdateSourceTrigger=PropertyChanged}" Width="70" ToolTip="Y"/>
+                            <Button Content="Add / update" Command="{Binding AddKeyMapCommand}"/>
+                        </WrapPanel>
+                        <ListBox ItemsSource="{Binding Mappings}" Height="120" Background="{StaticResource Panel}"
+                                 BorderBrush="#2A2F3A" Foreground="{StaticResource Text}">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid Margin="4,4">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="0">
+                                            <Run Text="{Binding Key}" FontWeight="SemiBold"/><Run Text="  →  "/>
+                                            <Run Text="{Binding X}"/><Run Text=","/><Run Text="{Binding Y}"/>
+                                        </TextBlock>
+                                        <Button Grid.Column="1" Content="Remove"
+                                                Command="{Binding DataContext.RemoveKeyMapCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                CommandParameter="{Binding}"/>
+                                    </Grid>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+
+                        <TextBlock Text="Shared folder" FontWeight="Bold" FontSize="15" Margin="0,12,0,4"/>
+                        <TextBox Text="{Binding Settings.SharedFolder, UpdateSourceTrigger=PropertyChanged}"/>
+                        <WrapPanel>
+                            <Button Content="Save settings" Command="{Binding SaveSettingsCommand}"/>
+                            <Button Content="Open shared folder" Command="{Binding OpenSharedFolderCommand}"/>
+                        </WrapPanel>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- LOG -->
+            <TabItem Header="Log">
+                <Grid Margin="12">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <WrapPanel Grid.Row="0">
+                        <Button Content="Clear" Command="{Binding ClearLogCommand}"/>
+                        <Button Content="Open log folder" Command="{Binding OpenLogsCommand}"/>
+                    </WrapPanel>
+                    <TextBox Grid.Row="1" Text="{Binding LogText}" IsReadOnly="True"
+                             AcceptsReturn="True" FontFamily="Consolas" FontSize="12"
+                             VerticalScrollBarVisibility="Auto" TextWrapping="NoWrap"
+                             Background="#0B0D11" Foreground="#C7D0D9" BorderBrush="#2A2F3A"/>
+                </Grid>
+            </TabItem>
+        </TabControl>
+
+        <!-- Status bar -->
+        <TextBlock Grid.Row="3" Text="{Binding SubStatus}" Foreground="{StaticResource TextDim}"
+                   TextTrimming="CharacterEllipsis" Margin="0,8,0,0"/>
+    </Grid>
+</Window>
