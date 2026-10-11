@@ -4,3 +4,6 @@
 to download jsut click on the green button then navigate to this path 🙌
 "C:\Users\NAME\Downloads\Default Project\AndroidOnWindows\src\AndroidOnWindows\bin\Release\net10.0-windows"
 then config the app and you are up to go!!! 
+
+
+(PLEASE ANY ISSUES HAPPEN REPORT THEM IN THE ISSUES TAB FOR FUTURE PATCHES)
